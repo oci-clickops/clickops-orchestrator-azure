@@ -58,6 +58,21 @@ output "virtual_machines" {
   }
 }
 
+# Oracle Autonomous Databases - OracleDB@Azure
+output "oracle_autonomous_databases" {
+  description = "Oracle Autonomous Database Serverless instances at Azure"
+  value = {
+    for key, adb in azurerm_oracle_autonomous_database.this : key => {
+      name            = adb.name
+      display_name    = adb.display_name
+      id              = adb.id
+      location        = adb.location
+      db_workload     = adb.db_workload
+      connection_urls = adb.connection_urls
+    }
+  }
+}
+
 # Simple deployment summary
 output "deployment_summary" {
   description = "Simple summary of deployed resources"
@@ -80,7 +95,10 @@ output "deployment_summary" {
     virtual_machines = {
       total = length(module.vm)
     }
-    message = "Check Azure portal for VM public IP addresses"
+    oracle_autonomous_databases = {
+      total = length(azurerm_oracle_autonomous_database.this)
+    }
+    message = "Check Azure portal for VM public IP addresses and ADB connection strings"
   }
 }
 
@@ -94,6 +112,9 @@ output "resource_ids" {
     subnets         = local.resource_ids.subnets
     virtual_machines = {
       for key, vm in module.vm : key => vm.resource_id
+    }
+    oracle_autonomous_databases = {
+      for key, adb in azurerm_oracle_autonomous_database.this : key => adb.id
     }
   }
 }
