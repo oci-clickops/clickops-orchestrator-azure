@@ -19,6 +19,7 @@ This orchestrator implements a hybrid resource management system with:
 The orchestrator automatically determines whether to create or reference resources based on JSON configuration:
 
 #### New Resources (Created by Terraform)
+
 When no `resource_id` is provided, Terraform creates the resource using Azure Verified Modules.
 
 ```json
@@ -32,7 +33,8 @@ When no `resource_id` is provided, Terraform creates the resource using Azure Ve
 }
 ```
 
-#### Existing Resources (Discovered via Data Sources) 
+#### Existing Resources (Discovered via Data Sources)
+
 When `resource_id` is provided, Terraform discovers and references the existing Azure resource.
 
 ```json
@@ -73,11 +75,13 @@ Resources reference each other using descriptive keys, automatically resolved by
 ### Prerequisites
 
 **For GitHub Actions Deployment (Highly Recommended):**
+
 - GitHub repository with the azure-terraform.yaml workflow configured
 - Self-hosted runner in OCI (Instance Principal) with Azure and OCI credentials (backet for terraform state) configured
 - SSH key pair available at `~/.ssh/azure_vm_key.pub` on the runner
 
 **For Local Development/Testing (Optional):**
+
 ```bash
 # Generate SSH key pair for VM access
 ssh-keygen -t rsa -b 4096 -f ~/.ssh/azure_vm_key -N ""
@@ -96,12 +100,14 @@ export ARM_SUBSCRIPTION_ID="your-subscription-id"
 Deploy everything from scratch - Resource Group, VNet, NSG, and VMs.
 
 **Via GitHub Actions (Recommended):**
+
 1. Configure your JSON files in the `config/` directory
 2. Create a Pull Request with your changes
 3. GitHub Actions automatically runs `terraform plan` and posts results as PR comment
 4. Merge the PR to trigger automatic deployment via GitHub Actions
 
 **Via Local Terraform (Development/Testing):**
+
 ```bash
 terraform init
 
@@ -155,12 +161,14 @@ Use existing network infrastructure and deploy only virtual machines.
 **Step 2**: Deploy the configuration:
 
 **Via GitHub Actions (Recommended):**
+
 1. Create a Pull Request with your modified JSON configurations
 2. GitHub Actions runs `terraform plan` and shows what will be created
 3. Review the plan in the PR comment
 4. Merge the PR to trigger automatic deployment
 
 **Via Local Terraform (Development/Testing):**
+
 ```bash
 # Deploy VMs on existing infrastructure
 terraform apply \
@@ -181,11 +189,13 @@ The orchestrator uses **OCI Object Storage** as Terraform backend for state mana
 - **`versions.tf.template`**: Template with OCI backend configuration using environment variables
 - **`versions.tf`**: Generated file during workflow execution (git-ignored)
 - **Runtime Generation**: Workflow uses `envsubst` to replace environment variables:
+
   ```bash
   envsubst < versions.tf.template > versions.tf
   ```
 
 **Required Environment Variables** (set in `$HOME/.github-runner-env`):
+
 ```bash
 # Azure Service Principal Credentials  
 export ARM_CLIENT_ID="your-client-id"
@@ -206,6 +216,7 @@ This repository uses the `azure-terraform.yaml` workflow for automated deploymen
 #### Active Workflows
 
 **Main Workflow: `azure-terraform.yaml`**
+
 - **External Orchestrator Pattern**: Clones external repository for Terraform code
 - **Runner-First Security**: All credentials stored on self-hosted runner (not GitHub)
 - **Explicit Configuration**: Uses explicit var-file declarations for all JSON configurations
@@ -218,6 +229,7 @@ This repository uses the `azure-terraform.yaml` workflow for automated deploymen
 ### Workflow Triggers
 
 **Main Workflow (`azure-terraform.yaml`)**
+
 - **Pull Requests**: Automatic `terraform plan` with detailed output posted as PR comment
 - **PR Merge**: Automatic `terraform apply` when PR is merged to main
 - **Manual Dispatch**: On-demand execution with environment selection (dev/staging/prod)
@@ -281,3 +293,49 @@ Built-in constraints ensure free tier compatibility:
   }
 }
 ```
+
+### Adding Oracle Autonomous Database (OracleDB@Azure)
+
+Deploy Oracle Autonomous Database Serverless (ADB-S) at Azure:
+
+```json
+{
+  "oracle_autonomous_databases": {
+    "adb-prod": {
+      "resource_group_key": "rg-demo",
+      "network_key": "vnet-demo",
+      "subnet_key": "subnet-delegated",
+      "name": "adb-prod-oltp",
+      "display_name": "Production OLTP Database",
+      "location": "eastus",
+      "db_workload": "OLTP",
+      "compute_model": "ECPU",
+      "compute_count": 2,
+      "data_storage_size_in_tbs": 1,
+      "db_version": "19c",
+      "license_model": "BringYourOwnLicense",
+      "admin_password": "SecurePassword#2024",
+      "character_set": "AL32UTF8",
+      "national_character_set": "AL16UTF16",
+      "auto_scaling_enabled": false,
+      "mtls_connection_required": true,
+      "backup_retention_period_in_days": 60
+    }
+  }
+}
+```
+
+**Supported workloads**: `OLTP`, `DW`, `AJD`, `APEX`
+
+> **Note**: Oracle ADB-S requires a delegated subnet with `Oracle.Database/networkAttachments` service delegation. See [OCI Multicloud Landing Zone for Azure](https://github.com/oci-landing-zones/terraform-oci-multicloud-azure) for network setup.
+
+## Supported Resources
+
+| Resource Type | Create New | Use Existing | Notes |
+|--------------|------------|--------------|-------|
+| Resource Groups | ✅ | ✅ | Via `resource_id` |
+| Virtual Networks | ✅ | ✅ | Via `resource_id` |
+| Subnets | ✅ | ✅ | Automatic with VNet |
+| Network Security Groups | ✅ | ✅ | Via `resource_id` |
+| Virtual Machines | ✅ | ❌ | Always creates new |
+| Oracle ADB-S | ✅ | ❌ | OracleDB@Azure |
