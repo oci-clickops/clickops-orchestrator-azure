@@ -90,10 +90,10 @@ Add `resource_id` to reference existing infrastructure:
 
 ## Free Tier Compliance
 
-Built-in validations for Azure free tier:
+Built-in catalog validations:
 
 - **VM sizes**: `Standard_B1s`, `Standard_B2pts_v2`, `Standard_B2ats_v2`
-- **Public IP**: Basic SKU only
+- **Public IP**: Standard SKU only; Basic SKU is retired
 - **Storage**: Standard_LRS, 30GB OS disk
 
 ## Backend

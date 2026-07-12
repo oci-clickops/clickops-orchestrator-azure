@@ -11,13 +11,13 @@ locals {
       "Standard_B2ats_v2"  # 2 vCPU, 1GB RAM - AMD EPYC
     ]
 
-    # Public IP SKUs allowed for Azure Free Tier 
+    # Supported public IP SKUs. Basic was retired on 2025-09-30.
     valid_public_ip_skus = [
-      "Basic" # Only Basic SKU allowed (Azure free tier: 1,500 hours/month)
+      "Standard"
     ]
 
     # Error message templates
     vm_size_error_template       = "Only Azure free tier VM sizes are supported: Standard_B1s (1 vCPU, 1GB), Standard_B2pts_v2 (2 vCPU, 1GB ARM), Standard_B2ats_v2 (2 vCPU, 1GB AMD)"
-    public_ip_sku_error_template = "Only Basic SKU public IPs are supported (Azure free tier includes 1,500 hours/month)"
+    public_ip_sku_error_template = "Only the supported Standard public IP SKU is allowed"
   }
 }

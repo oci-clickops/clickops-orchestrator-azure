@@ -69,7 +69,7 @@ variable "virtual_machines" {
     admin_username     = string
     ssh_key_path       = optional(string, "~/.ssh/azure_vm_key.pub")
     create_public_ip   = optional(bool, true)
-    public_ip_sku      = optional(string, "Basic")
+    public_ip_sku      = optional(string, "Standard")
   }))
   default = {}
 
@@ -90,26 +90,26 @@ variable "virtual_machines" {
 # Uses azurerm_oracle_autonomous_database resource
 variable "oracle_autonomous_databases" {
   type = map(object({
-    resource_group_key                = string
-    network_key                       = string
-    subnet_key                        = string
-    name                              = string
-    display_name                      = optional(string)
-    location                          = optional(string, "eastus")
-    db_workload                       = optional(string, "OLTP")
-    compute_model                     = optional(string, "ECPU")
-    compute_count                     = optional(number, 2)
-    data_storage_size_in_tbs          = optional(number, 1)
-    db_version                        = optional(string, "19c")
-    license_model                     = optional(string, "BringYourOwnLicense")
-    admin_password                    = string
-    character_set                     = optional(string, "AL32UTF8")
-    national_character_set            = optional(string, "AL16UTF16")
-    auto_scaling_enabled              = optional(bool, true)
-    auto_scaling_for_storage_enabled  = optional(bool, false)
-    mtls_connection_required          = optional(bool, false)
-    backup_retention_period_in_days   = optional(number, 60)
-    customer_contacts                 = optional(list(string), [])
+    resource_group_key               = string
+    network_key                      = string
+    subnet_key                       = string
+    name                             = string
+    display_name                     = optional(string)
+    location                         = optional(string, "eastus")
+    db_workload                      = optional(string, "OLTP")
+    compute_model                    = optional(string, "ECPU")
+    compute_count                    = optional(number, 2)
+    data_storage_size_in_tbs         = optional(number, 1)
+    db_version                       = optional(string, "19c")
+    license_model                    = optional(string, "BringYourOwnLicense")
+    admin_password                   = string
+    character_set                    = optional(string, "AL32UTF8")
+    national_character_set           = optional(string, "AL16UTF16")
+    auto_scaling_enabled             = optional(bool, true)
+    auto_scaling_for_storage_enabled = optional(bool, false)
+    mtls_connection_required         = optional(bool, false)
+    backup_retention_period_in_days  = optional(number, 60)
+    customer_contacts                = optional(list(string), [])
   }))
   default     = {}
   description = "Oracle Autonomous Database Serverless instances (OracleDB@Azure)"

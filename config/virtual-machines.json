@@ -10,7 +10,7 @@
       "admin_username": "azureuser",
       "ssh_key_path": "~/.ssh/azure_vm_key.pub",
       "create_public_ip": true,
-      "public_ip_sku": "Basic"
+      "public_ip_sku": "Standard"
     },
       "vm-web2": {
       "resource_group_key": "rg-demo",
@@ -22,7 +22,7 @@
       "admin_username": "azureuser",
       "ssh_key_path": "~/.ssh/azure_vm_key.pub",
       "create_public_ip": true,
-      "public_ip_sku": "Basic"
+      "public_ip_sku": "Standard"
     }
   }
 }
