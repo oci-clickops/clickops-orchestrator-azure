@@ -3,5 +3,11 @@ output "virtual_machines" {
 }
 
 output "oracle_autonomous_databases" {
-  value = { for key, adb in azurerm_oracle_autonomous_database.this : key => { id = adb.id, name = adb.name, display_name = adb.display_name } }
+  value = {
+    for key, adb in module.oracle_autonomous_database : key => {
+      id            = adb.resource_id
+      oci_adbs_ocid = adb.oci_adbs_ocid
+      oci_region    = adb.oci_region
+    }
+  }
 }
