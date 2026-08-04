@@ -1,24 +1,11 @@
 # Oracle Autonomous Database Serverless (ADB-S) at Azure
 # Uses azurerm_oracle_autonomous_database resource from AzureRM provider
 
-locals {
-  # Enrich ADB configs with resolved resource IDs
-  oracle_autonomous_databases = {
-    for key, adb in var.oracle_autonomous_databases : key => merge(adb, {
-      resource_group_name = local.resource_ids.resource_groups[adb.resource_group_key].name
-      location            = local.resource_ids.resource_groups[adb.resource_group_key].location
-      subnet_id           = local.resource_ids.subnets[adb.network_key][adb.subnet_key]
-      virtual_network_id  = local.resource_ids.networks[adb.network_key]
-      display_name        = coalesce(adb.display_name, adb.name)
-    })
-  }
-}
-
 resource "azurerm_oracle_autonomous_database" "this" {
-  for_each = local.oracle_autonomous_databases
+  for_each = var.oracle_autonomous_databases
 
   name                = each.value.name
-  display_name        = each.value.display_name
+  display_name        = coalesce(each.value.display_name, each.value.name)
   resource_group_name = each.value.resource_group_name
   location            = each.value.location
 
@@ -52,6 +39,4 @@ resource "azurerm_oracle_autonomous_database" "this" {
     ignore_changes = [admin_password]
   }
 
-  depends_on = [module.resource_group, module.vnet]
 }
-
