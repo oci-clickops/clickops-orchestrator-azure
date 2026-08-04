@@ -1,7 +1,7 @@
 module "vm" {
   for_each = var.virtual_machines
   source   = "Azure/avm-res-compute-virtualmachine/azurerm"
-  version  = "0.19.0"
+  version  = "0.21.0"
 
   name                            = each.value.name
   location                        = each.value.location

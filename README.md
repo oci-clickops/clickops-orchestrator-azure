@@ -1,121 +1,24 @@
-# Azure Orchestrator
+# Azure workload adapter
 
-Terraform orchestrator for Azure infrastructure using JSON configurations. Supports VMs, networks, and Oracle Autonomous Database (OracleDB@Azure).
+This Terraform root deploys project workloads into an existing Azure foundation. It creates only private Linux virtual machines and Oracle Autonomous Database resources. Resource groups, virtual networks, subnets, network security groups, IAM, and landing-zone resources are supplied through the reviewed project handoff and are never created here.
 
-## Quick Start
+`platform-ci` checks out this adapter, generates the Azure provider and OCI Object Storage backend at runtime, and passes the project manifest as a Terraform variable file. Azure service-principal credentials remain in the runner `ARM_*` environment. Workload manifests contain resource secrets only as environment-qualified runtime placeholders.
 
-```bash
-# Deploy with explicit var-files
-terraform init
-terraform apply \
-  -var-file=config/resource-groups.json \
-  -var-file=config/networks.json \
-  -var-file=config/security-groups.json \
-  -var-file=config/virtual-machines.json
-```
+## Manifest roots
 
-Or via GitHub Actions: edit JSON files → create PR → merge to deploy.
+| Resource | Terraform root | Required handed-off references |
+|---|---|---|
+| Private VM | `virtual_machines` | Location, resource group, subnet ID, and NSG ID |
+| Oracle ADB | `oracle_autonomous_databases` | Location, resource group, delegated subnet ID, and VNet ID |
 
-## Supported Resources
+VMs use Ubuntu 22.04 LTS Gen2 and do not expose a public-IP option. The VM implementation uses the Azure Verified Module for virtual machines. The ADB implementation wraps `terraform-oci-multicloud-azure//modules/azurerm-ora-adbs` at `v0.1.2`.
 
-| Resource | Create New | Use Existing |
-|----------|------------|--------------|
-| Resource Groups | ✅ | ✅ (via `resource_id`) |
-| Virtual Networks | ✅ | ✅ (via `resource_id`) |
-| Network Security Groups | ✅ | ✅ (via `resource_id`) |
-| Virtual Machines | ✅ | ❌ |
-| Oracle ADB-S | ✅ | ❌ |
+Removing the last entry from a project manifest is represented by `{}`. The shared workflow retains the existing isolated state and plans the resource deletion for human review.
 
-## Configuration Examples
+## Local verification
 
-### Virtual Machine
-
-```json
-{
-  "virtual_machines": {
-    "vm-web": {
-      "resource_group_key": "rg-demo",
-      "network_key": "vnet-demo",
-      "subnet_key": "subnet-public",
-      "security_group_key": "nsg-web",
-      "name": "vm-web-server",
-      "size": "Standard_B1s",
-      "admin_username": "azureuser",
-      "ssh_key_path": "~/.ssh/azure_vm_key.pub",
-      "create_public_ip": true
-    }
-  }
-}
-```
-
-### Oracle Autonomous Database (OracleDB@Azure)
-
-```json
-{
-  "oracle_autonomous_databases": {
-    "adb-prod": {
-      "resource_group_key": "rg-demo",
-      "network_key": "vnet-demo",
-      "subnet_key": "subnet-delegated",
-      "name": "adb-prod-oltp",
-      "db_workload": "OLTP",
-      "compute_count": 2,
-      "data_storage_size_in_tbs": 1,
-      "license_model": "BringYourOwnLicense",
-      "admin_password": "SecurePass#2024"
-    }
-  }
-}
-```
-
-Workloads: `OLTP`, `DW`, `AJD`, `APEX`
-
-> **Note**: ADB-S requires a delegated subnet. See [terraform-oci-multicloud-azure](https://github.com/oci-landing-zones/terraform-oci-multicloud-azure).
-
-### Using Existing Resources
-
-Add `resource_id` to reference existing infrastructure:
-
-```json
-{
-  "resource_groups": {
-    "rg-existing": {
-      "name": "my-existing-rg",
-      "location": "eastus",
-      "resource_id": "/subscriptions/.../resourceGroups/my-existing-rg"
-    }
-  }
-}
-```
-
-## Free Tier Compliance
-
-Built-in catalog validations:
-
-- **VM sizes**: `Standard_B1s`, `Standard_B2pts_v2`, `Standard_B2ats_v2`
-- **Public IP**: Standard SKU only; Basic SKU is retired
-- **Storage**: Standard_LRS, 30GB OS disk
-
-## Backend
-
-Uses OCI Object Storage for Terraform state. Configure via environment variables:
+The test harness generates a credential-free provider configuration in a temporary directory and uses Terraform mock providers. It never calls Azure APIs.
 
 ```bash
-export ARM_CLIENT_ID="..."
-export ARM_CLIENT_SECRET="..."
-export ARM_TENANT_ID="..."
-export ARM_SUBSCRIPTION_ID="..."
-export OCI_TF_STATE_BUCKET="terraform-state"
-export OCI_TF_STATE_NAMESPACE="your-namespace"
-```
-
-## File Structure
-
-```
-config/
-├── resource-groups.json
-├── networks.json
-├── security-groups.json
-├── virtual-machines.json
-└── oracle-autonomous-databases.json
+tests/run-tests.sh
 ```
