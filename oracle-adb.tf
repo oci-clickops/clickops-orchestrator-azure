@@ -8,6 +8,7 @@ module "oracle_autonomous_database" {
   resource_group_name      = each.value.resource_group_name
   subnet_id                = each.value.subnet_id
   virtual_network_id       = each.value.virtual_network_id
+  mtls_connection_required = each.value.mtls_connection_required
   admin_password           = each.value.admin_password
   db_workload              = each.value.db_workload
   compute_model            = each.value.compute_model
